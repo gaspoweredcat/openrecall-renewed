@@ -66,34 +66,69 @@ OpenRecall offers several key advantages over closed-source alternatives:
 ## Get Started
 
 ### Prerequisites
-- Python 3.11
-- MacOSX/Windows/Linux
+- Python 3.11 or higher (Tested on 3.12)
+- MacOSX/Windows/Linux (Ubuntu 24.04 verified)
 - Git
+- `xprintidle` (Linux only, for activity tracking): `sudo apt install xprintidle`
 
-To install:
-```
-python3 -m pip install --upgrade --no-cache-dir git+https://github.com/openrecall/openrecall.git
+### Installation
+
+We recommend installing in a virtual environment to avoid dependency conflicts.
+
+```bash
+# Clone the repository
+git clone https://github.com/gaspoweredcat/openrecall-renewed.git
+cd openrecall-renewed
+
+# Create a virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+# On Linux/MacOS:
+source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
+
+# Install dependencies and the package
+pip install -e .
 ```
 
-To run:
+### Running OpenRecall
+
+With the virtual environment activated:
+```bash
+python openrecall/app.py
 ```
-python3 -m openrecall.app
+
+Or using the direct path to the venv python:
+```bash
+venv/bin/python openrecall/app.py
 ```
+
 Open your browser to:
 [http://localhost:8082](http://localhost:8082) to access OpenRecall.
+
+## Working Modules
+- **App/UI**: Flask-based web interface for timeline and search.
+- **Screenshot**: Automated background recording with multi-monitor support.
+- **Database**: SQLite storage with semantic search vectors (`float32`).
+- **OCR**: Powered by `doctr` for text extraction.
+- **NLP**: Local embeddings using `sentence-transformers`.
 
 ## Arguments
 `--storage-path` (default: user data path for your OS): allows you to specify the path where the screenshots and database should be stored. We recommend [creating an encrypted volume](docs/encryption.md) to store your data.
 
-`--primary-monitor-only` (default: False): only record the primary monitor (rather than individual screenshots for other monitors)
+`--primary-monitor-only` (default: False): only record the primary monitor. If set to `False` (default), OpenRecall runs in multi-monitor mode, capturing all screens. Check strict constraints on database were removed to allow multiple screenshots per timestamp.
 
 ## Uninstall instructions
 
 To uninstall OpenRecall and remove all stored data:
 
-1. Uninstall the package:
-   ```
-   python3 -m pip uninstall openrecall
+1. Remove the virtual environment and project folder:
+   ```bash
+   rm -rf venv
+   cd ..
+   rm -rf openrecall-renewed
    ```
 
 2. Remove stored data:
