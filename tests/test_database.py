@@ -104,7 +104,7 @@ class TestDatabase(unittest.TestCase):
         np.testing.assert_array_almost_equal(retrieved_embedding, embedding)
 
     def test_insert_duplicate_timestamp(self):
-        """Test inserting an entry with a duplicate timestamp (should be ignored)."""
+        """Test inserting an entry with a duplicate timestamp (should be allowed now)."""
         ts = int(time.time())
         embedding1 = np.array([0.1, 0.2, 0.3], dtype=np.float32)
         embedding2 = np.array([0.4, 0.5, 0.6], dtype=np.float32)
@@ -112,19 +112,20 @@ class TestDatabase(unittest.TestCase):
         id1 = insert_entry("First text", ts, embedding1, "App1", "Title1")
         self.assertIsNotNone(id1)
 
-        # Try inserting another entry with the same timestamp
+        # Try inserting another entry with the same timestamp (should succeed)
         id2 = insert_entry("Second text", ts, embedding2, "App2", "Title2")
-        self.assertIsNone(id2, "Inserting duplicate timestamp should return None")
+        self.assertIsNotNone(id2, "Inserting duplicate timestamp should succeed")
 
-        # Verify only the first entry exists
+        # Verify both entries exist
         cursor = self.conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM entries WHERE timestamp = ?", (ts,))
         count = cursor.fetchone()[0]
-        self.assertEqual(count, 1)
+        self.assertEqual(count, 2)
 
-        cursor.execute("SELECT text FROM entries WHERE timestamp = ?", (ts,))
-        text = cursor.fetchone()[0]
-        self.assertEqual(text, "First text") # Ensure the first one was kept
+        cursor.execute("SELECT text FROM entries WHERE timestamp = ? ORDER BY id", (ts,))
+        rows = cursor.fetchall()
+        self.assertEqual(rows[0][0], "First text")
+        self.assertEqual(rows[1][0], "Second text")
 
     def test_get_all_entries_empty(self):
         """Test getting entries from an empty database."""

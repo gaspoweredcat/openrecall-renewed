@@ -87,7 +87,10 @@ app.jinja_env.loader = StringLoader()
 @app.route("/")
 def timeline():
     # connect to db
-    timestamps = get_timestamps()
+    entries = get_all_entries()
+    timestamps = [entry.timestamp for entry in entries]
+    timestamp_map = {entry.timestamp: entry.filename for entry in entries}
+    
     return render_template_string(
         """
 {% extends "base_template" %}
@@ -99,11 +102,12 @@ def timeline():
       <div class="slider-value" id="sliderValue">{{timestamps[0] | timestamp_to_human_readable }}</div>
     </div>
     <div class="image-container">
-      <img id="timestampImage" src="/static/{{timestamps[0]}}.webp" alt="Image for timestamp">
+      <img id="timestampImage" src="/static/{{timestamp_map[timestamps[0]]}}" alt="Image for timestamp">
     </div>
   </div>
   <script>
     const timestamps = {{ timestamps|tojson }};
+    const timestampMap = {{ timestamp_map|tojson }};
     const slider = document.getElementById('discreteSlider');
     const sliderValue = document.getElementById('sliderValue');
     const timestampImage = document.getElementById('timestampImage');
@@ -112,13 +116,13 @@ def timeline():
       const reversedIndex = timestamps.length - 1 - slider.value;
       const timestamp = timestamps[reversedIndex];
       sliderValue.textContent = new Date(timestamp * 1000).toLocaleString();  // Convert to human-readable format
-      timestampImage.src = `/static/${timestamp}.webp`;
+      timestampImage.src = `/static/${timestampMap[timestamp]}`;
     });
 
     // Initialize the slider with a default value
     slider.value = timestamps.length - 1;
     sliderValue.textContent = new Date(timestamps[0] * 1000).toLocaleString();  // Convert to human-readable format
-    timestampImage.src = `/static/${timestamps[0]}.webp`;
+    timestampImage.src = `/static/${timestampMap[timestamps[0]]}`;
   </script>
 {% else %}
   <div class="container">
@@ -130,6 +134,7 @@ def timeline():
 {% endblock %}
 """,
         timestamps=timestamps,
+        timestamp_map=timestamp_map,
     )
 
 
@@ -137,7 +142,7 @@ def timeline():
 def search():
     q = request.args.get("q")
     entries = get_all_entries()
-    embeddings = [np.frombuffer(entry.embedding, dtype=np.float64) for entry in entries]
+    embeddings = [np.frombuffer(entry.embedding, dtype=np.float32) for entry in entries]
     query_embedding = get_embedding(q)
     similarities = [cosine_similarity(query_embedding, emb) for emb in embeddings]
     indices = np.argsort(similarities)[::-1]
@@ -153,7 +158,7 @@ def search():
                 <div class="col-md-3 mb-4">
                     <div class="card">
                         <a href="#" data-toggle="modal" data-target="#modal-{{ loop.index0 }}">
-                            <img src="/static/{{ entry['timestamp'] }}.webp" alt="Image" class="card-img-top">
+                            <img src="/static/{{ entry.filename }}" alt="Image" class="card-img-top">
                         </a>
                     </div>
                 </div>
@@ -161,7 +166,7 @@ def search():
                     <div class="modal-dialog modal-xl" role="document" style="max-width: none; width: 100vw; height: 100vh; padding: 20px;">
                         <div class="modal-content" style="height: calc(100vh - 40px); width: calc(100vw - 40px); padding: 0;">
                             <div class="modal-body" style="padding: 0;">
-                                <img src="/static/{{ entry['timestamp'] }}.webp" alt="Image" style="width: 100%; height: 100%; object-fit: contain; margin: 0 auto;">
+                                <img src="/static/{{ entry.filename }}" alt="Image" style="width: 100%; height: 100%; object-fit: contain; margin: 0 auto;">
                             </div>
                         </div>
                     </div>

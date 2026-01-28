@@ -8,16 +8,16 @@ with io.open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 install_requires = [
-    "Flask==3.0.3",
-    "numpy==1.26.4",
-    "mss==9.0.1",
-    "sentence-transformers==3.0.0",
-    "torch==2.8.0",
-    "torchvision==0.17.0",
-    "shapely==2.0.4",
-    "h5py==3.11.0",
-    "rapidfuzz==3.9.3",
-    "Pillow==10.3.0",
+    "Flask>=3.0.3",
+    "numpy>=1.26.4",
+    "mss>=9.0.1",
+    "sentence-transformers>=3.0.0",
+    "torch>=2.0.0",
+    "torchvision>=0.17.0",
+    "shapely>=2.0.4",
+    "h5py>=3.11.0",
+    "rapidfuzz>=3.9.3",
+    "Pillow>=10.3.0",
 ]
 
 # Define OS-specific dependencies
